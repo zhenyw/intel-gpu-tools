@@ -1,0 +1,23 @@
+#!/bin/bash
+
+`which lspci > /dev/null` || (echo "Require lspci utility." && exit 1)
+
+DEV_PATH="/sys/devices/pci0000:00/0000:00:02.0"
+GVT_FIRMWARE_SRC="$DEV_PATH/gvt_firmware"
+GVT_FIRMWARE_DST_PATH="/lib/firmware/i915/gvt"
+
+VENDOR="0x8086"
+DEVICE=`cat $DEV_PATH/device`
+REV=`lspci -nvmms 00:02.0 | grep Rev | tr -d 'Rev:[:blank:]'`
+
+GVT_FIRMWARE_DST_FILE="vid_${VENDOR}_did_${DEVICE}_rid_0x${REV}.golden_hw_state"
+
+mkdir -p $GVT_FIRMWARE_DST_PATH
+[ $? -ne 0 ] && (echo "Failed to create firmware target directory [$GVT_FIRMWARE_DST_PATH]" && exit 1)
+
+cp $GVT_FIRMWARE_SRC $GVT_FIRMWARE_DST_PATH/$GVT_FIRMWARE_DST_FILE
+
+[ $? -ne 0 ] && (echo "Failed to copy firmware file." && exit 1)
+
+echo "$GVT_FIRMWARE_DST_FILE created in $GVT_FIRMWARE_DST_PATH."
+exit 0
